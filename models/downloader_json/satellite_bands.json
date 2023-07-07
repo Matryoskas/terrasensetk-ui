@@ -1,0 +1,22 @@
+{
+  "Sentinel-2": [
+    {"code": "B01", "description": "Coastal aerosol"},
+    {"code": "B02", "description": "Blue"},
+    {"code": "B03", "description": "Green"},
+    {"code": "B04", "description": "Red"},
+    {"code": "B05", "description": "Vegetation red edge 1"},
+    {"code": "B06", "description": "Vegetation red edge 2"},
+    {"code": "B07", "description": "Vegetation red edge 3"},
+    {"code": "B08", "description": "NIR (Near InfraRed)"},
+    {"code": "B8A", "description": "Narrow NIR"},
+    {"code": "B09", "description": "Water vapor"},
+    {"code": "B11", "description": "SWIR 1 (Short Wave Infrared)"},
+    {"code": "B12", "description": "SWIR 2"}
+  ],
+  "Satellite-X": [
+    {"code": "BX", "description": "XXX"},
+    {"code": "BY", "description": "YYY"},
+    {"code": "BZ", "description": "ZZZ"}
+  ]
+}
+
