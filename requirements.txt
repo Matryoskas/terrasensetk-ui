@@ -1,0 +1,2 @@
+terrasensetk @ git+https://gitlab.com/ManelPereira/terrasensetk.git
+pyside6>=6.5
