@@ -142,16 +142,15 @@ class DatasetView(QWidget):
         csv_path = self.csv_path_line_edit.text()
         shapefile_name = self.shapefile_name_line_edit.text()
         
-        if not shapefile_directory:
-            QMessageBox.warning(self, "Destination Folder Not Specified", "Please specify the destination folder for the Shapefile")
-            return -1
         if not csv_path:
             QMessageBox.warning(self, "Field not filled", "Please select a CSV file")
+            return -1
+        if not shapefile_directory:
+            QMessageBox.warning(self, "Destination Folder Not Specified", "Please specify the destination folder for the Shapefile")
             return -1
         if not shapefile_name:
             QMessageBox.warning(self, "Field not filled", "Please specify the name of the Shapefile")
             return -1
-        self.clear_page()
 
     def convert_to_shapefile(self):
         if self.page_validation() == -1:
@@ -195,10 +194,12 @@ class DatasetView(QWidget):
             }
             pointShp.write(row_dict)
         pointShp.close()
+        self.clear_page()
+        QMessageBox.information(self, "Success", "Shapefile created successfully")
 
     def clear_page(self):
         # Clear csv field
-        self.csv_path_line_edit_line_edit.clear()
+        self.csv_path_line_edit.clear()
         # Clear download destination field
         self.shapefile_path_line_edit.clear()
         # Clear shapefile name field
