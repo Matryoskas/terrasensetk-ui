@@ -13,8 +13,8 @@ class DataView(QWidget):
 
         # Creating the tab widget and adding the views as tabs
         self.tab_widget = TabWidget()
-        self.tab_widget.addTab(downloader_view, "Downloader")
         self.tab_widget.addTab(dataset_view, "Dataset")
+        self.tab_widget.addTab(downloader_view, "Downloader")
 
         # Create a scroll area and set the tab widget as its widget
         scroll_area = QScrollArea()
@@ -35,16 +35,17 @@ class DataView(QWidget):
 
     def tab_changed(self, index):
         # Logic to display the corresponding page for the selected tab
-        if index == 0:  # Downloader tab
-            self.show_downloader()
-        elif index == 1:  # Dataset tab
+        if index == 0:  # Dataset tab
             self.show_dataset()
+        elif index == 1:  # Downloader tab
+            self.show_downloader()
+
+    def show_dataset(self): 
+        # Logic to display the dataset page
+        self.tab_widget.setCurrentIndex(0)
 
     def show_downloader(self):
         # Logic to display the downloader page
-        self.tab_widget.setCurrentIndex(0)
-
-    def show_dataset(self):
-        # Logic to display the dataset page
         self.tab_widget.setCurrentIndex(1)
+
 
