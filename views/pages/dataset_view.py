@@ -1,6 +1,5 @@
 from qt_core import *
 from resources.widgets.push_button import PushButton
-from resources.widgets.line_edit import LineEdit
 import fiona
 import pandas as pd
 import sentinelhub as sh
@@ -16,7 +15,7 @@ class DatasetView(QWidget):
         csv_path_label = QLabel("CSV Path:")
 
         # Line edit for displaying and editing the selected csv file
-        self.csv_path_line_edit = LineEdit()
+        self.csv_path_line_edit = QLineEdit()
         self.csv_path_line_edit.setReadOnly(True)
 
         # Button for choosing a csv file
@@ -35,7 +34,7 @@ class DatasetView(QWidget):
         shapefile_path_label = QLabel("Destination Folder:")
 
         # Line edit for displaying and editing the selected folder
-        self.shapefile_path_line_edit = LineEdit()
+        self.shapefile_path_line_edit = QLineEdit()
         self.shapefile_path_line_edit.setReadOnly(True)
 
         # Button for choosing a folder
@@ -54,7 +53,7 @@ class DatasetView(QWidget):
         shapefile_name_label = QLabel("Name of the shapefile:")
 
         # Line edit for displaying and editing the name of the shapefile
-        self.shapefile_name_line_edit = LineEdit()
+        self.shapefile_name_line_edit = QLineEdit()
 
         # Layout for shapefile_name_line_edit
         shapefile_name_layout = QHBoxLayout()
@@ -185,11 +184,12 @@ class DatasetView(QWidget):
         for index, row in gt.iterrows():
             
             dict_row_info = row.to_dict()
+            print(dict_row_info)
             del(dict_row_info["latitude_std_decimal_degrees"])
             del(dict_row_info["longitude_std_decimal_degrees"])
 
             row_dict = {
-                "geometry": {'type':'Point', 'coordinates': (row["longitude_std_decimal_degrees"],row["latitude_std_decimal_degrees"])},
+                "geometry": {'type':'Point', 'coordinates': (row.longitude_std_decimal_degrees, row.latitude_std_decimal_degrees)},
                 "properties": dict_row_info
             }
             pointShp.write(row_dict)

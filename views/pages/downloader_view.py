@@ -2,7 +2,6 @@ from qt_core import *
 import terrasensetk as tstk
 from models.downloader_model import DownloaderModel
 from resources.widgets.push_button import PushButton
-from resources.widgets.line_edit import LineEdit
 from resources.widgets.combo_box import ComboBox
 from resources.widgets.check_box import CheckBox
 from resources.widgets.date_edit import DateEdit
@@ -20,7 +19,7 @@ class DownloaderView(QWidget):
         download_path_label = QLabel("Download Path:")
 
         # Line edit for displaying and editing the selected folder
-        self.download_path_line_edit = LineEdit()
+        self.download_path_line_edit = QLineEdit()
         self.download_path_line_edit.setReadOnly(True)
 
         # Button for choosing a folder
@@ -57,7 +56,7 @@ class DownloaderView(QWidget):
         shapefile_label = QLabel("Shapefile:")
 
         # Shapefile line edit
-        self.shapefile_line_edit = LineEdit()
+        self.shapefile_line_edit = QLineEdit()
         self.shapefile_line_edit.setReadOnly(True)
 
         # Button to select shapefile
@@ -144,7 +143,7 @@ class DownloaderView(QWidget):
         #//////////////////////////////////////////////////////////////////////////
         # FILE WITH DATES -> Line edit and button
         self.label_file_with_dates = QLabel("Choose a Date File:")
-        self.line_edit_file_with_dates = LineEdit()
+        self.line_edit_file_with_dates = QLineEdit()
         self.line_edit_file_with_dates.setReadOnly(True)
         self.date_file_button = PushButton("Browse...")
 
