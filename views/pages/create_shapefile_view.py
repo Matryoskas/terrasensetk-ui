@@ -20,40 +20,44 @@ class LineWidget(QWidget):
         self.longitude_label = QLabel("Longitude:")
 
         # Line edit for displaying and editing the longitude
-        self.longitude_line_edit = QLineEdit()
+        self.longitude_line_edit = QDoubleSpinBox()
+        self.longitude_line_edit.setDecimals(13)
+        self.longitude_line_edit.setMinimum(-180)
 
         # Label for the latitude field
         self.latitude_label = QLabel("Latitude:")
 
         # Line edit for displaying and editing the latitude
-        self.latitude_line_edit = QLineEdit()
+        self.latitude_line_edit = QDoubleSpinBox()
+        self.latitude_line_edit.setDecimals(13)
+        self.latitude_line_edit.setMinimum(-90)
 
         self.samp_num_label = QLabel("Sample Number:")
-        self.sampnum_line_edit = QLineEdit()
+        self.samp_num_line_edit = QLineEdit()
 
         self.calcium_label = QLabel("Calcium:")
-        self.calcium_line_edit = QLineEdit()
+        self.calcium_line_edit = QDoubleSpinBox()
 
         self.magnesium_label = QLabel("Magnesium:")
-        self.magnesium_line_edit = QLineEdit()
+        self.magnesium_line_edit = QDoubleSpinBox()
 
         self.sodium_label = QLabel("Sodium:")
-        self.sodium_line_edit = QLineEdit()
+        self.sodium_line_edit = QDoubleSpinBox()
 
         self.potassium_label = QLabel("Potassium:")
-        self.potassium_line_edit = QLineEdit()
+        self.potassium_line_edit = QDoubleSpinBox()
 
         self.exchangeable_sodium_label = QLabel("Exchangeable Sodium:")
-        self.exchangeable_sodium_line_edit = QLineEdit()
+        self.exchangeable_sodium_line_edit = QDoubleSpinBox()
 
         self.clay_ratio_label = QLabel("Clay Ratio:")
-        self.clay_ratio_line_edit = QLineEdit()
+        self.clay_ratio_line_edit = QDoubleSpinBox()
 
         self.cec_nh4_ph_7_label = QLabel("CEC NH4 pH 7:")
-        self.cec_nh4_ph_7_line_edit = QLineEdit()
+        self.cec_nh4_ph_7_line_edit = QDoubleSpinBox()
 
         self.cacl_label = QLabel("Calcium Chloride:")
-        self.cacl_line_edit = QLineEdit()
+        self.cacl_line_edit = QDoubleSpinBox()
 
         self.hide_optional_fields()
 
@@ -72,7 +76,7 @@ class LineWidget(QWidget):
         self.data_layout.addWidget(self.samp_num_label, 2, 0)
         self.data_layout.addWidget(self.calcium_label, 2, 1)
         self.data_layout.addWidget(self.magnesium_label, 2, 2)
-        self.data_layout.addWidget(self.sampnum_line_edit, 3, 0)
+        self.data_layout.addWidget(self.samp_num_line_edit, 3, 0)
         self.data_layout.addWidget(self.calcium_line_edit, 3, 1)
         self.data_layout.addWidget(self.magnesium_line_edit, 3, 2)
         self.data_layout.addWidget(self.sodium_label, 4, 0)
@@ -114,7 +118,7 @@ class LineWidget(QWidget):
         self.samp_num_label.setVisible(True)
         self.calcium_label.setVisible(True)
         self.magnesium_label.setVisible(True)
-        self.sampnum_line_edit.setVisible(True)
+        self.samp_num_line_edit.setVisible(True)
         self.calcium_line_edit.setVisible(True)
         self.magnesium_line_edit.setVisible(True)
         self.sodium_label.setVisible(True)
@@ -134,7 +138,7 @@ class LineWidget(QWidget):
         self.samp_num_label.setHidden(True)
         self.calcium_label.setHidden(True)
         self.magnesium_label.setHidden(True)
-        self.sampnum_line_edit.setHidden(True)
+        self.samp_num_line_edit.setHidden(True)
         self.calcium_line_edit.setHidden(True)
         self.magnesium_line_edit.setHidden(True)
         self.sodium_label.setHidden(True)
@@ -158,7 +162,7 @@ class CreateShapefileView(QWidget):
         # DESTINATION FOLDER
         #//////////////////////////////////////////////////////////////////////////
         # Label for the destination folder
-        shapefile_path_label = QLabel("Destination Folder:")
+        shapefile_path_label = QLabel("Destination folder:")
 
         # Line edit for displaying and editing the selected folder
         self.shapefile_path_line_edit = QLineEdit()
@@ -177,7 +181,7 @@ class CreateShapefileView(QWidget):
         # NAME OF THE SHAPEFILE
         #//////////////////////////////////////////////////////////////////////////
         # Label for the name of the shapefile
-        shapefile_name_label = QLabel("Name of the shapefile:")
+        shapefile_name_label = QLabel("Shapefile name:")
 
         # Line edit for displaying and editing the name of the shapefile
         self.shapefile_name_line_edit = QLineEdit()
@@ -190,7 +194,9 @@ class CreateShapefileView(QWidget):
         # DATA LAYOUT
         #//////////////////////////////////////////////////////////////////////////
         data_label = QLabel("Data:")
-        data_label.setFixedSize(150, 30)
+        data_label.setAlignment(Qt.AlignCenter)
+        line_label = QLabel("_____________________________________________________________________")
+        line_label.setAlignment(Qt.AlignCenter)
 
         # ADD LINE BUTTON
         #//////////////////////////////////////////////////////////////////////////
@@ -240,7 +246,7 @@ class CreateShapefileView(QWidget):
         self.content_layout.addLayout(shapefile_name_layout)
         self.content_layout.addSpacing(10)
         self.content_layout.addWidget(data_label)
-        self.content_layout.addSpacing(10)
+        self.content_layout.addWidget(line_label)
         self.content_layout.addWidget(LineWidget(1))
         self.content_layout.addSpacing(10)
         self.content_layout.addLayout(self.buttons_layout)
@@ -286,12 +292,12 @@ class CreateShapefileView(QWidget):
             self.shapefile_path_line_edit.setText(folder_dialog)
 
     def add_line(self):
-        self.content_layout.insertWidget(self.content_layout.count() - 3, LineWidget(self.line_num))
+        self.content_layout.insertWidget(self.content_layout.count() - 4, LineWidget(self.line_num))
         self.remove_line_button.setVisible(True)
         self.line_num += 1
 
     def remove_line(self):
-        self.content_layout.itemAt(self.content_layout.count() - 4).widget().deleteLater()
+        self.content_layout.itemAt(self.content_layout.count() - 5).widget().deleteLater()
         self.line_num -= 1
         if self.line_num <= 2:
             self.remove_line_button.setHidden(True)
@@ -304,12 +310,20 @@ class CreateShapefileView(QWidget):
             QMessageBox.warning(self, "Destination Folder Not Specified", "Please specify the destination folder for the Shapefile")
             return -1
         if not shapefile_name:
-            QMessageBox.warning(self, "Field not filled", "Please specify the name of the Shapefile")
+            QMessageBox.warning(self, "Field not filled", "Please specify the Shapefile's name")
             return -1
+        for i in range(2, self.line_num + 1):
+            date = self.content_layout.itemAt(i+7).widget().date_edit.date()
+            latitude = self.content_layout.itemAt(i+7).widget().latitude_line_edit.value()
+            longitude = self.content_layout.itemAt(i+7).widget().longitude_line_edit.value()
+            if not date or not latitude or not longitude:
+                QMessageBox.warning(self, "Required fields not filled", "Please fill all the required fields")
+                return -1
         
 
     def convert_to_shapefile(self):
         if self.page_validation() == -1:
+            print("Validation failed")
             return
         
         config = sh.SHConfig()
@@ -317,7 +331,6 @@ class CreateShapefileView(QWidget):
         config.sh_client_secret = r'~)x%O:RiSc|F5i+SIL}^fZUlWOa.;E^{_:&!J6@:'
         config.save()
         
-        csv_path = self.csv_path_line_edit.text()
         shapefile_dir_path = self.shapefile_path_line_edit.text() + '/' + self.shapefile_name_line_edit.text()
         try:
             os.mkdir(shapefile_dir_path)
@@ -325,28 +338,32 @@ class CreateShapefileView(QWidget):
             pass
         shapefile_path = shapefile_dir_path + '/' + self.shapefile_name_line_edit.text() + '.shp'
 
-        gt = pd.read_csv(csv_path)
-
-        schema_props = ""
-        for col in list(gt.columns):
-            schema_props += f"('{col}','str'),"
-
         schema = {
             'geometry':'Point',
-            'properties':[('pedlabsampnum','str'),('observation_date','int'),('date','date'),('ca_nh4_ph_7','float'),('mg_nh4_ph_7','float'),('na_nh4_ph_7','float'),('k_nh4_ph_7','float'),('exchangeable_sodium','float'),('cec7_clay_ratio','float'),('cec_nh4_ph_7','float'),('ph_cacl2','str')]
+            'properties':[('pedlabsampnum','str'),('observation_date','int'),('date','date'),('ca_nh4_ph_7','float'),('mg_nh4_ph_7','float'),('na_nh4_ph_7','float'),('k_nh4_ph_7','float'),('exchangeable_sodium','float'),('cec7_clay_ratio','float'),('cec_nh4_ph_7','float'),('ph_cacl2','float')]
         }
         
         pointShp = fiona.open(shapefile_path, mode='w', driver='ESRI Shapefile', schema = schema, crs = "WGS84")
 
-        for index, row in gt.iterrows():
+        for i in range(2, self.line_num + 1):
             
-            dict_row_info = row.to_dict()
+            widget = self.content_layout.itemAt(i+7).widget()
+            dict_row_info = {
+                'pedlabsampnum': widget.samp_num_line_edit.text(), 
+                'observation_date': 0, 
+                'date': widget.date_edit.date().toPython(), 
+                'ca_nh4_ph_7': widget.calcium_line_edit.value(), 
+                'mg_nh4_ph_7': widget.magnesium_line_edit.value(), 
+                'na_nh4_ph_7': widget.sodium_line_edit.value(), 
+                'k_nh4_ph_7': widget.potassium_line_edit.value(), 
+                'exchangeable_sodium': widget.exchangeable_sodium_line_edit.value(), 
+                'cec7_clay_ratio': widget.clay_ratio_line_edit.value(), 
+                'cec_nh4_ph_7': widget.cec_nh4_ph_7_line_edit.value(), 
+                'ph_cacl2': widget.cacl_line_edit.value()
+            }
             print(dict_row_info)
-            del(dict_row_info["latitude_std_decimal_degrees"])
-            del(dict_row_info["longitude_std_decimal_degrees"])
-
             row_dict = {
-                "geometry": {'type':'Point', 'coordinates': (row.longitude_std_decimal_degrees, row.latitude_std_decimal_degrees)},
+                "geometry": {'type':'Point', 'coordinates': (widget.latitude_line_edit.value() , widget.longitude_line_edit.value())},
                 "properties": dict_row_info
             }
             pointShp.write(row_dict)
@@ -359,3 +376,18 @@ class CreateShapefileView(QWidget):
         self.shapefile_path_line_edit.clear()
         # Clear shapefile name field
         self.shapefile_name_line_edit.clear()
+        for i in range (2, self.line_num):
+            self.remove_line()
+        self.content_layout.itemAt(9).widget().date_edit.setDate(QDate(2000,1,1))
+        self.content_layout.itemAt(9).widget().latitude_line_edit.setValue(0)
+        self.content_layout.itemAt(9).widget().longitude_line_edit.setValue(0)
+        self.content_layout.itemAt(9).widget().samp_num_line_edit.clear()
+        self.content_layout.itemAt(9).widget().calcium_line_edit.setValue(0)
+        self.content_layout.itemAt(9).widget().magnesium_line_edit.setValue(0)
+        self.content_layout.itemAt(9).widget().sodium_line_edit.setValue(0)
+        self.content_layout.itemAt(9).widget().potassium_line_edit.setValue(0)
+        self.content_layout.itemAt(9).widget().exchangeable_sodium_line_edit.setValue(0)
+        self.content_layout.itemAt(9).widget().clay_ratio_line_edit.setValue(0)
+        self.content_layout.itemAt(9).widget().cec_nh4_ph_7_line_edit.setValue(0)
+        self.content_layout.itemAt(9).widget().cacl_line_edit.setValue(0)
+        self.line_num = 2

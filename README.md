@@ -4,13 +4,23 @@ TerraSenseTK-UI
 This is the UI for TerraSenseTK.
 ## Requirements
 #### Linux:
-Install the required system libraries:  
-```sudo apt-get install gcc libgdal-dev graphviz proj-bin libproj-dev libspatialindex-dev```
+No requirements.
+#### Windows:
+Install the following packages from [Unoffical Windows wheels repository](https://www.lfd.uci.edu/~gohlke/pythonlibs/):
+>gdal  
+rasterio  
+shapely  
+fiona
 ## Installation
-#### Linux:
 Run this command in the root directory of the project every time you want to run the program after having shutdown your computer:  
-```python3 -m pip install -r requirements.txt```
-## Usage
 #### Linux:
-Run this command in the root directory of the project:  
-```python3 main.py```
+
+`python3 -m pip install -r requirements.txt`
+#### Windows:
+`python -m pip install -r requirements.txt`
+## Usage
+Run this command in the root directory of the project:
+#### Linux:  
+`python3 main.py`
+#### Windows:
+`python main.py`
