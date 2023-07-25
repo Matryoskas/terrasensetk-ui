@@ -22,7 +22,7 @@ class LineWidget(QWidget):
         # Line edit for displaying and editing the longitude
         self.longitude_line_edit = QDoubleSpinBox()
         self.longitude_line_edit.setDecimals(13)
-        self.longitude_line_edit.setMinimum(-180)
+        self.longitude_line_edit.setRange(-180, 180)
 
         # Label for the latitude field
         self.latitude_label = QLabel("Latitude:")
@@ -30,7 +30,7 @@ class LineWidget(QWidget):
         # Line edit for displaying and editing the latitude
         self.latitude_line_edit = QDoubleSpinBox()
         self.latitude_line_edit.setDecimals(13)
-        self.latitude_line_edit.setMinimum(-90)
+        self.latitude_line_edit.setRange(-90, 90)
 
         self.samp_num_label = QLabel("Sample Number:")
         self.samp_num_line_edit = QLineEdit()
@@ -233,11 +233,13 @@ class CreateShapefileView(QWidget):
         # Creating a horizontal layout for the add and remove buttons
 
         self.buttons_layout = QHBoxLayout()
+        self.buttons_layout.setSizeConstraint(QLayout.SetMinAndMaxSize)
         self.buttons_layout.addWidget(add_line_button)
         self.buttons_layout.addWidget(self.remove_line_button)
 
         # Creating a vertical layout for the content
         self.content_layout = QVBoxLayout()
+        self.content_layout.setSizeConstraint(QLayout.SetMinAndMaxSize)
         self.content_layout.addSpacing(10)
         self.content_layout.addWidget(shapefile_path_label)
         self.content_layout.addLayout(shapefile_folder_layout)
@@ -252,6 +254,7 @@ class CreateShapefileView(QWidget):
         self.content_layout.addLayout(self.buttons_layout)
         self.content_layout.addSpacing(10)
         self.content_layout.addWidget(create_button)
+        self.content_layout.addSpacing(70)
         self.content_layout.setAlignment(Qt.AlignTop)
         
         # Adding the main layout to the horizontal layout
@@ -292,12 +295,12 @@ class CreateShapefileView(QWidget):
             self.shapefile_path_line_edit.setText(folder_dialog)
 
     def add_line(self):
-        self.content_layout.insertWidget(self.content_layout.count() - 4, LineWidget(self.line_num))
+        self.content_layout.insertWidget(self.content_layout.count() - 5, LineWidget(self.line_num))
         self.remove_line_button.setVisible(True)
         self.line_num += 1
 
     def remove_line(self):
-        self.content_layout.itemAt(self.content_layout.count() - 5).widget().deleteLater()
+        self.content_layout.itemAt(self.content_layout.count() - 6).widget().deleteLater()
         self.line_num -= 1
         if self.line_num <= 2:
             self.remove_line_button.setHidden(True)
@@ -316,10 +319,15 @@ class CreateShapefileView(QWidget):
             date = self.content_layout.itemAt(i+7).widget().date_edit.date()
             latitude = self.content_layout.itemAt(i+7).widget().latitude_line_edit.value()
             longitude = self.content_layout.itemAt(i+7).widget().longitude_line_edit.value()
-            if not date or not latitude or not longitude:
-                QMessageBox.warning(self, "Required fields not filled", "Please fill all the required fields")
+            if not date:
+                QMessageBox.warning(self, "Required field not filled", f"Please fill the date field of line {i-1}")
                 return -1
-        
+            if not latitude:
+                QMessageBox.warning(self, "Required field not filled", f"Please fill the latitude field of line {i-1}")
+                return -1
+            if not longitude:
+                QMessageBox.warning(self, "Required field not filled", f"Please fill the longitude field of line {i-1}")
+                return -1
 
     def convert_to_shapefile(self):
         if self.page_validation() == -1:
@@ -350,7 +358,7 @@ class CreateShapefileView(QWidget):
             widget = self.content_layout.itemAt(i+7).widget()
             dict_row_info = {
                 'pedlabsampnum': widget.samp_num_line_edit.text(), 
-                'observation_date': 0, 
+                'observation_date': '', 
                 'date': widget.date_edit.date().toPython(), 
                 'ca_nh4_ph_7': widget.calcium_line_edit.value(), 
                 'mg_nh4_ph_7': widget.magnesium_line_edit.value(), 

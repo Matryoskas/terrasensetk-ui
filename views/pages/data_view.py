@@ -13,24 +13,29 @@ class DataView(QWidget):
         dataset_view = DatasetView()
         create_shapefile_view = CreateShapefileView()
 
+        # Create a scroll area and set the tab widget as its widget
+        self.scroll_create_shapefile = QScrollArea()
+        self.scroll_create_shapefile.setWidget(create_shapefile_view)
+        self.scroll_create_shapefile.setWidgetResizable(True)
+
+        scroll_dataset = QScrollArea()
+        scroll_dataset.setWidget(dataset_view)
+        scroll_dataset.setWidgetResizable(True)
+
+        scroll_downloader = QScrollArea()
+        scroll_downloader.setWidget(downloader_view)
+        scroll_downloader.setWidgetResizable(True)
+
         # Creating the tab widget and adding the views as tabs
         self.tab_widget = TabWidget()
-        self.tab_widget.addTab(create_shapefile_view, "Create Shapefile")
-        self.tab_widget.addTab(dataset_view, "Dataset")
-        self.tab_widget.addTab(downloader_view, "Downloader")
-
-        # Create a scroll area and set the tab widget as its widget
-        scroll_area = QScrollArea()
-        scroll_area.setWidget(self.tab_widget)
-        scroll_area.setWidgetResizable(True)
-    
-        # Remove the border of the scroll area using Qt StyleSheet
-        scroll_area.setStyleSheet("QScrollArea { border: none; }")
+        self.tab_widget.addTab(self.scroll_create_shapefile, "Create Shapefile")
+        self.tab_widget.addTab(scroll_dataset, "Dataset")
+        self.tab_widget.addTab(scroll_downloader, "Downloader")
 
         # Creating the vertical layout for the data page
         layout = QVBoxLayout()
-        layout.addWidget(scroll_area)
-        layout.setContentsMargins(0, 0, 0, 0)  # Remove the outer margins
+        layout.addWidget(self.tab_widget)
+        layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
         # Connect the signals to the slots
@@ -39,22 +44,8 @@ class DataView(QWidget):
     def tab_changed(self, index):
         # Logic to display the corresponding page for the selected tab
         if index == 0:  # Create_shapefile tab
-            self.show_create_shapefile()
+            self.tab_widget.setCurrentIndex(0)
         elif index == 1:  # Dataset tab
-            self.show_dataset()
+            self.tab_widget.setCurrentIndex(1)
         elif index == 2:  # Downloader tab
-            self.show_downloader()
-
-    def show_create_shapefile(self):
-        # Logic to display the create_shapefile page
-        self.tab_widget.setCurrentIndex(0)
-
-    def show_dataset(self): 
-        # Logic to display the dataset page
-        self.tab_widget.setCurrentIndex(1)
-
-    def show_downloader(self):
-        # Logic to display the downloader page
-        self.tab_widget.setCurrentIndex(2)
-
-
+            self.tab_widget.setCurrentIndex(2)
