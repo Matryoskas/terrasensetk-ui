@@ -159,6 +159,19 @@ class CreateShapefileView(QWidget):
         self.line_num = 2
         super().__init__()
 
+
+        # CSV FILE
+        #//////////////////////////////////////////////////////////////////////////
+        csv_path_label = QLabel("CSV file:")
+        self.csv_path_line_edit = QLineEdit()
+        self.csv_path_line_edit.setReadOnly(True)
+        csv_path_button = PushButton("Browse...")
+        csv_path_button.setFixedWidth(100)
+        csv_path_layout = QHBoxLayout()
+        csv_path_layout.setContentsMargins(0, 0, 0, 0)
+        csv_path_layout.addWidget(self.csv_path_line_edit)
+        csv_path_layout.addWidget(csv_path_button)
+
         # DESTINATION FOLDER
         #//////////////////////////////////////////////////////////////////////////
         # Label for the destination folder
@@ -240,6 +253,8 @@ class CreateShapefileView(QWidget):
         # Creating a vertical layout for the content
         self.content_layout = QVBoxLayout()
         self.content_layout.setSizeConstraint(QLayout.SetMinAndMaxSize)
+        self.content_layout.addWidget(csv_path_label)
+        self.content_layout.addLayout(csv_path_layout)
         self.content_layout.addSpacing(10)
         self.content_layout.addWidget(shapefile_path_label)
         self.content_layout.addLayout(shapefile_folder_layout)
@@ -272,20 +287,23 @@ class CreateShapefileView(QWidget):
         # CONNECT BUTTONS AND WIDGETS TO FUNCTIONS
         #//////////////////////////////////////////////////////////////////////////
 
-        # Connect destination_folder_button to choose_folder function
+        csv_path_button.clicked.connect(self.choose_csv)
         shapefile_path_button.clicked.connect(self.choose_folder)
-
-        # Connect convert_button to convert_to_shapefile function
         create_button.clicked.connect(self.convert_to_shapefile)
-
-        # Connect add_line_button to add_line function
         add_line_button.clicked.connect(self.add_line)
-
-        # Connect remove_line_button to remove_line function
         self.remove_line_button.clicked.connect(self.remove_line)
 
     #FUNCTIONS
     #//////////////////////////////////////////////////////////////////////////
+
+    def choose_csv(self):
+        file_dialog = QFileDialog()
+        file_dialog.setWindowTitle("Choose CSV File")
+        file_dialog.setNameFilter("Comma-separated Values (*.csv)")
+        file_dialog.setFileMode(QFileDialog.ExistingFile)
+        if file_dialog.exec_():
+            selected_file = file_dialog.selectedFiles()[0]
+            self.csv_path_line_edit.setText(selected_file)
 
     def choose_folder(self):
         folder_dialog = QFileDialog.getExistingDirectory(
@@ -293,7 +311,15 @@ class CreateShapefileView(QWidget):
         )
         if folder_dialog:
             self.shapefile_path_line_edit.setText(folder_dialog)
-
+    def show_csv_columns(self):
+        csv_path = self.csv_path_line_edit.text()
+        if csv_path:
+            csv_file = open(csv_path, "r")
+            csv_reader = csv.reader(csv_file)
+            csv_columns = next(csv_reader)
+            self.csv_columns_list_widget.clear()
+            self.csv_columns_list_widget.addItems(csv_columns)
+            csv_file.close()
     def add_line(self):
         self.content_layout.insertWidget(self.content_layout.count() - 5, LineWidget(self.line_num))
         self.remove_line_button.setVisible(True)
