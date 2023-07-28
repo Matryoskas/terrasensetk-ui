@@ -5,160 +5,38 @@ import pandas as pd
 import sentinelhub as sh
 import os
 
-class LineWidget(QWidget):
-    def __init__(self, line_num):
+class CSVComboBox(QComboBox):
+    old_index = new_index = None
+
+    def __init__(self, columns, id):
         super().__init__()
+        self.setPlaceholderText("Select a column")
+        self.addItems(columns)
+        self.id = id
+        self.currentIndexChanged.connect(self.update_combo_boxes)
 
-        # Label for the date field
-        self.date_label = QLabel("Date:")
+    def disable_items_after_creation(self):
+        for combo_box in self.parent().csv_combo_boxes:
+            combo_box_index = combo_box.currentIndex()
+            if combo_box is not self and combo_box_index != -1:
+                self.model().item(combo_box_index).setEnabled(False)
 
-        # Line edit for displaying and editing the date
-        self.date_edit = QDateEdit()
-        self.date_edit.setDisplayFormat("yyyy-MM-dd")
+    def update_combo_boxes(self, index):
+        self.old_index = self.new_index
+        self.new_index = index
+        for combo_box in self.parent().csv_combo_boxes:
+            if combo_box is not self:
+                combo_box.model().item(index).setEnabled(False)
+                if self.old_index is not None:
+                    combo_box.model().item(self.old_index).setEnabled(True)
 
-        # Label for the longitude field
-        self.longitude_label = QLabel("Longitude:")
-
-        # Line edit for displaying and editing the longitude
-        self.longitude_line_edit = QDoubleSpinBox()
-        self.longitude_line_edit.setDecimals(13)
-        self.longitude_line_edit.setRange(-180, 180)
-
-        # Label for the latitude field
-        self.latitude_label = QLabel("Latitude:")
-
-        # Line edit for displaying and editing the latitude
-        self.latitude_line_edit = QDoubleSpinBox()
-        self.latitude_line_edit.setDecimals(13)
-        self.latitude_line_edit.setRange(-90, 90)
-
-        self.samp_num_label = QLabel("Sample Number:")
-        self.samp_num_line_edit = QLineEdit()
-
-        self.calcium_label = QLabel("Calcium:")
-        self.calcium_line_edit = QDoubleSpinBox()
-
-        self.magnesium_label = QLabel("Magnesium:")
-        self.magnesium_line_edit = QDoubleSpinBox()
-
-        self.sodium_label = QLabel("Sodium:")
-        self.sodium_line_edit = QDoubleSpinBox()
-
-        self.potassium_label = QLabel("Potassium:")
-        self.potassium_line_edit = QDoubleSpinBox()
-
-        self.exchangeable_sodium_label = QLabel("Exchangeable Sodium:")
-        self.exchangeable_sodium_line_edit = QDoubleSpinBox()
-
-        self.clay_ratio_label = QLabel("Clay Ratio:")
-        self.clay_ratio_line_edit = QDoubleSpinBox()
-
-        self.cec_nh4_ph_7_label = QLabel("CEC NH4 pH 7:")
-        self.cec_nh4_ph_7_line_edit = QDoubleSpinBox()
-
-        self.cacl_label = QLabel("Calcium Chloride:")
-        self.cacl_line_edit = QDoubleSpinBox()
-
-        self.hide_optional_fields()
-
-        # DATA LAYOUT
-        #//////////////////////////////////////////////////////////////////////////
-
-        self.check_box = QCheckBox("Show optional fields")
-
-        self.data_layout = QGridLayout()
-        self.data_layout.addWidget(self.date_label, 0, 0)
-        self.data_layout.addWidget(self.latitude_label, 0, 1)
-        self.data_layout.addWidget(self.longitude_label, 0, 2)
-        self.data_layout.addWidget(self.date_edit, 1, 0)
-        self.data_layout.addWidget(self.latitude_line_edit, 1, 1)
-        self.data_layout.addWidget(self.longitude_line_edit, 1, 2)
-        self.data_layout.addWidget(self.samp_num_label, 2, 0)
-        self.data_layout.addWidget(self.calcium_label, 2, 1)
-        self.data_layout.addWidget(self.magnesium_label, 2, 2)
-        self.data_layout.addWidget(self.samp_num_line_edit, 3, 0)
-        self.data_layout.addWidget(self.calcium_line_edit, 3, 1)
-        self.data_layout.addWidget(self.magnesium_line_edit, 3, 2)
-        self.data_layout.addWidget(self.sodium_label, 4, 0)
-        self.data_layout.addWidget(self.potassium_label, 4, 1)
-        self.data_layout.addWidget(self.exchangeable_sodium_label, 4, 2)
-        self.data_layout.addWidget(self.sodium_line_edit, 5, 0)
-        self.data_layout.addWidget(self.potassium_line_edit, 5, 1)
-        self.data_layout.addWidget(self.exchangeable_sodium_line_edit, 5, 2)
-        self.data_layout.addWidget(self.clay_ratio_label, 6, 0)
-        self.data_layout.addWidget(self.cec_nh4_ph_7_label, 6, 1)
-        self.data_layout.addWidget(self.cacl_label, 6, 2)
-        self.data_layout.addWidget(self.clay_ratio_line_edit, 7, 0)
-        self.data_layout.addWidget(self.cec_nh4_ph_7_line_edit, 7, 1)
-        self.data_layout.addWidget(self.cacl_line_edit, 7, 2)
-
-        line_label = QLabel(f"Line {line_num}:")
-        line_layout = QVBoxLayout()
-        line_layout.addWidget(line_label)
-        line_layout.addWidget(self.check_box)
-        line_layout.addLayout(self.data_layout)
-        self.setLayout(line_layout)
-
-        # CONNECT BUTTONS AND WIDGETS TO FUNCTIONS
-        #//////////////////////////////////////////////////////////////////////////
-
-        # Connect check_box to show_optional_fields function
-        self.check_box.toggled.connect(self.react_to_toggle)
-
-    # FUNCTIONS
-    #//////////////////////////////////////////////////////////////////////////
-
-    def react_to_toggle(self):
-        if self.check_box.isChecked():
-            self.show_optional_fields()
-        else:
-            self.hide_optional_fields()
-
-    def show_optional_fields(self):
-        self.samp_num_label.setVisible(True)
-        self.calcium_label.setVisible(True)
-        self.magnesium_label.setVisible(True)
-        self.samp_num_line_edit.setVisible(True)
-        self.calcium_line_edit.setVisible(True)
-        self.magnesium_line_edit.setVisible(True)
-        self.sodium_label.setVisible(True)
-        self.potassium_label.setVisible(True)
-        self.exchangeable_sodium_label.setVisible(True)
-        self.sodium_line_edit.setVisible(True)
-        self.potassium_line_edit.setVisible(True)
-        self.exchangeable_sodium_line_edit.setVisible(True)
-        self.clay_ratio_label.setVisible(True)
-        self.cec_nh4_ph_7_label.setVisible(True)
-        self.cacl_label.setVisible(True)
-        self.clay_ratio_line_edit.setVisible(True)
-        self.cec_nh4_ph_7_line_edit.setVisible(True)
-        self.cacl_line_edit.setVisible(True)
-    
-    def hide_optional_fields(self):
-        self.samp_num_label.setHidden(True)
-        self.calcium_label.setHidden(True)
-        self.magnesium_label.setHidden(True)
-        self.samp_num_line_edit.setHidden(True)
-        self.calcium_line_edit.setHidden(True)
-        self.magnesium_line_edit.setHidden(True)
-        self.sodium_label.setHidden(True)
-        self.potassium_label.setHidden(True)
-        self.exchangeable_sodium_label.setHidden(True)
-        self.sodium_line_edit.setHidden(True)
-        self.potassium_line_edit.setHidden(True)
-        self.exchangeable_sodium_line_edit.setHidden(True)
-        self.clay_ratio_label.setHidden(True)
-        self.cec_nh4_ph_7_label.setHidden(True)
-        self.cacl_label.setHidden(True)
-        self.clay_ratio_line_edit.setHidden(True)
-        self.cec_nh4_ph_7_line_edit.setHidden(True)
-        self.cacl_line_edit.setHidden(True)
+    def enable_item(self, index):
+        if index != -1:
+            self.model().item(index).setEnabled(True)
 
 class CreateShapefileView(QWidget):
     def __init__(self):
-        self.line_num = 2
         super().__init__()
-
 
         # CSV FILE
         #//////////////////////////////////////////////////////////////////////////
@@ -204,27 +82,20 @@ class CreateShapefileView(QWidget):
         shapefile_name_layout.setContentsMargins(0, 0, 0, 0)
         shapefile_name_layout.addWidget(self.shapefile_name_line_edit)
 
-        # DATA LAYOUT
-        #//////////////////////////////////////////////////////////////////////////
-        data_label = QLabel("Data:")
-        data_label.setAlignment(Qt.AlignCenter)
-        line_label = QLabel("_____________________________________________________________________")
-        line_label.setAlignment(Qt.AlignCenter)
-
-        # ADD LINE BUTTON
+        # ADD ROW BUTTON
         #//////////////////////////////////////////////////////////////////////////
 
-        add_line_button = PushButton('')
-        add_line_icon = QIcon("resources/icons/create_shapefile_icons/add_icon.svg")
-        add_line_button.setIcon(add_line_icon)
+        self.add_row_button = PushButton('')
+        add_row_icon = QIcon("resources/icons/create_shapefile_icons/add_icon.svg")
+        self.add_row_button.setIcon(add_row_icon)
 
-        # REMOVE LINE BUTTON
+        # REMOVE ROW BUTTON
         #//////////////////////////////////////////////////////////////////////////
 
-        self.remove_line_button = PushButton('')
-        self.remove_line_button.setHidden(True)
-        remove_line_icon = QIcon("resources/icons/create_shapefile_icons/minus_icon.svg")
-        self.remove_line_button.setIcon(remove_line_icon)
+        self.remove_row_button = PushButton('')
+        self.remove_row_button.setHidden(True)
+        remove_row_icon = QIcon("resources/icons/create_shapefile_icons/minus_icon.svg")
+        self.remove_row_button.setIcon(remove_row_icon)
 
         # CREATE BUTTON
         #//////////////////////////////////////////////////////////////////////////
@@ -246,9 +117,8 @@ class CreateShapefileView(QWidget):
         # Creating a horizontal layout for the add and remove buttons
 
         self.buttons_layout = QHBoxLayout()
-        self.buttons_layout.setSizeConstraint(QLayout.SetMinAndMaxSize)
-        self.buttons_layout.addWidget(add_line_button)
-        self.buttons_layout.addWidget(self.remove_line_button)
+        self.buttons_layout.addWidget(self.add_row_button)
+        self.buttons_layout.addWidget(self.remove_row_button)
 
         # Creating a vertical layout for the content
         self.content_layout = QVBoxLayout()
@@ -261,12 +131,6 @@ class CreateShapefileView(QWidget):
         self.content_layout.addSpacing(10)
         self.content_layout.addWidget(shapefile_name_label)
         self.content_layout.addLayout(shapefile_name_layout)
-        self.content_layout.addSpacing(10)
-        self.content_layout.addWidget(data_label)
-        self.content_layout.addWidget(line_label)
-        self.content_layout.addWidget(LineWidget(1))
-        self.content_layout.addSpacing(10)
-        self.content_layout.addLayout(self.buttons_layout)
         self.content_layout.addSpacing(10)
         self.content_layout.addWidget(create_button)
         self.content_layout.addSpacing(70)
@@ -290,8 +154,9 @@ class CreateShapefileView(QWidget):
         csv_path_button.clicked.connect(self.choose_csv)
         shapefile_path_button.clicked.connect(self.choose_folder)
         create_button.clicked.connect(self.convert_to_shapefile)
-        add_line_button.clicked.connect(self.add_line)
-        self.remove_line_button.clicked.connect(self.remove_line)
+        self.add_row_button.clicked.connect(self.add_row)
+        self.remove_row_button.clicked.connect(self.remove_row)
+        self.csv_path_line_edit.textChanged.connect(self.csv_columns_to_shapefile)
 
     #FUNCTIONS
     #//////////////////////////////////////////////////////////////////////////
@@ -311,53 +176,75 @@ class CreateShapefileView(QWidget):
         )
         if folder_dialog:
             self.shapefile_path_line_edit.setText(folder_dialog)
-    def show_csv_columns(self):
-        csv_path = self.csv_path_line_edit.text()
-        if csv_path:
-            csv_file = open(csv_path, "r")
-            csv_reader = csv.reader(csv_file)
-            csv_columns = next(csv_reader)
-            self.csv_columns_list_widget.clear()
-            self.csv_columns_list_widget.addItems(csv_columns)
-            csv_file.close()
-    def add_line(self):
-        self.content_layout.insertWidget(self.content_layout.count() - 5, LineWidget(self.line_num))
-        self.remove_line_button.setVisible(True)
-        self.line_num += 1
 
-    def remove_line(self):
-        self.content_layout.itemAt(self.content_layout.count() - 6).widget().deleteLater()
-        self.line_num -= 1
-        if self.line_num <= 2:
-            self.remove_line_button.setHidden(True)
+    def csv_columns_to_shapefile(self):
+        #delete the previous layout if there is one
+        if self.content_layout.count() > 11:
+            self.content_layout.removeItem(self.csv_to_shapefile_layout)
+            self.content_layout.removeItem(self.buttons_layout)
+            while self.csv_to_shapefile_layout.count():
+                item = self.csv_to_shapefile_layout.takeAt(0)
+                widget = item.widget()
+                if widget is not None:
+                    widget.deleteLater()
+                else:
+                    self.csv_to_shapefile_layout.removeItem(item)
+            self.csv_to_shapefile_layout.deleteLater()
+            self.add_row_button.setHidden(False)
+            self.remove_row_button.setHidden(True)
+
+        self.csv = pd.read_csv(self.csv_path_line_edit.text())
+        self.csv_columns = self.csv.columns.tolist()
+
+        self.csv_to_shapefile_layout = QFormLayout()
+
+        self.csv_combo_boxes = [CSVComboBox(self.csv_columns, 0), CSVComboBox(self.csv_columns, 1), CSVComboBox(self.csv_columns, 2)]
+
+        self.csv_to_shapefile_layout.addRow(QLabel("Shapefile Column:"), QLabel('CSV Column:'))
+        self.csv_to_shapefile_layout.addRow(QLabel('Date'), self.csv_combo_boxes[0])
+        self.csv_to_shapefile_layout.addRow(QLabel('Latitude'), self.csv_combo_boxes[1])
+        self.csv_to_shapefile_layout.addRow(QLabel('Longitude'), self.csv_combo_boxes[2])
+
+        self.content_layout.insertLayout(3, self.csv_to_shapefile_layout)
+        self.content_layout.insertLayout(4, self.buttons_layout)
+
+    def add_row(self):
+        self.csv_combo_boxes.append(CSVComboBox(self.csv_columns, len(self.csv_combo_boxes)))
+        self.csv_to_shapefile_layout.addRow(QLineEdit(), self.csv_combo_boxes[-1])
+        self.csv_combo_boxes[-1].disable_items_after_creation()
+        self.remove_row_button.setVisible(True)
+        if len(self.csv_columns) == len(self.csv_combo_boxes):
+            self.add_row_button.setHidden(True)
+
+    def remove_row(self):
+        row_num = self.csv_to_shapefile_layout.rowCount()
+        index = self.csv_combo_boxes[-1].currentIndex()
+        del self.csv_combo_boxes[-1]
+        for combo_box in self.csv_combo_boxes:
+            combo_box.enable_item(index)
+        self.csv_to_shapefile_layout.removeRow(row_num - 1)
+        if row_num <= 5:
+            self.remove_row_button.setHidden(True)
+        if self.add_row_button.isHidden():
+            self.add_row_button.setVisible(True)
 
     def page_validation(self):
+        csv_path = self.csv_path_line_edit.text()
         shapefile_directory = self.shapefile_path_line_edit.text()
         shapefile_name = self.shapefile_name_line_edit.text()
         
+        if not csv_path:
+            QMessageBox.warning(self, "CSV File Not Specified", "Please specify the CSV file")
+            return -1
         if not shapefile_directory:
             QMessageBox.warning(self, "Destination Folder Not Specified", "Please specify the destination folder for the Shapefile")
             return -1
         if not shapefile_name:
             QMessageBox.warning(self, "Field not filled", "Please specify the Shapefile's name")
             return -1
-        for i in range(2, self.line_num + 1):
-            date = self.content_layout.itemAt(i+7).widget().date_edit.date()
-            latitude = self.content_layout.itemAt(i+7).widget().latitude_line_edit.value()
-            longitude = self.content_layout.itemAt(i+7).widget().longitude_line_edit.value()
-            if not date:
-                QMessageBox.warning(self, "Required field not filled", f"Please fill the date field of line {i-1}")
-                return -1
-            if not latitude:
-                QMessageBox.warning(self, "Required field not filled", f"Please fill the latitude field of line {i-1}")
-                return -1
-            if not longitude:
-                QMessageBox.warning(self, "Required field not filled", f"Please fill the longitude field of line {i-1}")
-                return -1
 
     def convert_to_shapefile(self):
         if self.page_validation() == -1:
-            print("Validation failed")
             return
         
         config = sh.SHConfig()
