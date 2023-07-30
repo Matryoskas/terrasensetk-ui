@@ -1,6 +1,5 @@
 from qt_core import *
 from views.pages.downloader_view import DownloaderView
-from views.pages.dataset_view import DatasetView
 from views.pages.create_shapefile_view import CreateShapefileView
 from resources.widgets.tab_widget import TabWidget
 
