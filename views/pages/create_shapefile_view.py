@@ -300,10 +300,15 @@ class CreateShapefileView(QWidget):
             csv_columns.append(csv_column)
 
         for i in range(csv_layout.rowCount() - 1):
+            # Check if the latitude and longitude columns are completely filled with real numbers
             if i == 1 or i == 2:
                 if data_types[self.csv_columns.index(csv_columns[i])] != 'float':
                     QMessageBox.warning(self, "Invalid Data Type", "Latitude and Longitude must be real numbers")
                     return
+                for bool in pd.isna(self.csv[csv_columns[i]]):
+                    if bool:
+                        QMessageBox.warning(self, "Invalid Data Type", "Latitude and Longitude must be real numbers")
+                        return
             else:
                 schema_props.append((shapefile_columns[i], data_types[self.csv_columns.index(csv_columns[i])]))
 
