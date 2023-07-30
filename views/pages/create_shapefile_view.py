@@ -190,9 +190,13 @@ class CreateShapefileView(QWidget):
                 else:
                     self.csv_to_shapefile_layout.removeItem(item)
             self.csv_to_shapefile_layout.deleteLater()
-            self.add_row_button.setHidden(False)
             self.remove_row_button.setHidden(True)
 
+        if self.csv_path_line_edit.text() == "":
+            self.add_row_button.setHidden(True)
+            return
+        
+        self.add_row_button.setHidden(False)
         self.csv = pd.read_csv(self.csv_path_line_edit.text())
         self.csv_columns = self.csv.columns.tolist()
 
@@ -205,8 +209,8 @@ class CreateShapefileView(QWidget):
         self.csv_to_shapefile_layout.addRow(QLabel('Latitude'), self.csv_combo_boxes[1])
         self.csv_to_shapefile_layout.addRow(QLabel('Longitude'), self.csv_combo_boxes[2])
 
-        self.content_layout.insertLayout(3, self.csv_to_shapefile_layout)
-        self.content_layout.insertLayout(4, self.buttons_layout)
+        self.content_layout.insertLayout(2, self.csv_to_shapefile_layout)
+        self.content_layout.insertLayout(3, self.buttons_layout)
 
     def add_row(self):
         self.csv_combo_boxes.append(CSVComboBox(self.csv_columns, len(self.csv_combo_boxes)))
@@ -236,6 +240,16 @@ class CreateShapefileView(QWidget):
         if not csv_path:
             QMessageBox.warning(self, "CSV File Not Specified", "Please specify the CSV file")
             return -1
+        for i in range(1, self.csv_to_shapefile_layout.rowCount()):
+            if i > 3:
+                shapefile_column = self.csv_to_shapefile_layout.itemAt(i, QFormLayout.LabelRole).widget().text()
+                if shapefile_column == "":
+                    QMessageBox.warning(self, f"Field not filled", f"Please specify the Shapefile's column in row {i}")
+                    return -1
+            csv_column = self.csv_to_shapefile_layout.itemAt(i, QFormLayout.FieldRole).widget().currentIndex()
+            if csv_column == -1:
+                QMessageBox.warning(self, f"Field not filled", f"Please specify the CSV's column in row {i}")
+                return -1
         if not shapefile_directory:
             QMessageBox.warning(self, "Destination Folder Not Specified", "Please specify the destination folder for the Shapefile")
             return -1
@@ -259,56 +273,74 @@ class CreateShapefileView(QWidget):
             pass
         shapefile_path = shapefile_dir_path + '/' + self.shapefile_name_line_edit.text() + '.shp'
 
+        schema_props = []
+        shapefile_columns = []
+        csv_columns = []
+        csv_layout = self.csv_to_shapefile_layout
+
+        # Get the data types of the CSV columns
+        self.csv = self.csv.convert_dtypes()
+        data_types = self.csv.dtypes.astype(str).tolist()
+        for i in range (len(data_types)):
+            if data_types[i] == 'string':
+                data_types[i] = 'str'
+            elif data_types[i] == 'Int64':
+                data_types[i] = 'int'
+            elif data_types[i] == 'Float64':
+                data_types[i] = 'float'
+            elif data_types[i] == 'Datetime64[ns]':
+                data_types[i] = 'date'
+            else:
+                data_types[i] = 'str'
+
+        for i in range(1, csv_layout.rowCount()):
+            shapefile_column = csv_layout.itemAt(i, QFormLayout.LabelRole).widget().text()
+            shapefile_columns.append(shapefile_column)
+            csv_column = csv_layout.itemAt(i, QFormLayout.FieldRole).widget().currentText()
+            csv_columns.append(csv_column)
+
+        for i in range(csv_layout.rowCount() - 1):
+            if i == 1 or i == 2:
+                if data_types[self.csv_columns.index(csv_columns[i])] != 'float':
+                    QMessageBox.warning(self, "Invalid Data Type", "Latitude and Longitude must be real numbers")
+                    return
+            else:
+                schema_props.append((shapefile_columns[i], data_types[self.csv_columns.index(csv_columns[i])]))
+
         schema = {
             'geometry':'Point',
-            'properties':[('pedlabsampnum','str'),('observation_date','int'),('date','date'),('ca_nh4_ph_7','float'),('mg_nh4_ph_7','float'),('na_nh4_ph_7','float'),('k_nh4_ph_7','float'),('exchangeable_sodium','float'),('cec7_clay_ratio','float'),('cec_nh4_ph_7','float'),('ph_cacl2','float')]
+            'properties':schema_props
         }
         
         pointShp = fiona.open(shapefile_path, mode='w', driver='ESRI Shapefile', schema = schema, crs = "WGS84")
 
-        for i in range(2, self.line_num + 1):
-            
-            widget = self.content_layout.itemAt(i+7).widget()
-            dict_row_info = {
-                'pedlabsampnum': widget.samp_num_line_edit.text(), 
-                'observation_date': '', 
-                'date': widget.date_edit.date().toPython(), 
-                'ca_nh4_ph_7': widget.calcium_line_edit.value(), 
-                'mg_nh4_ph_7': widget.magnesium_line_edit.value(), 
-                'na_nh4_ph_7': widget.sodium_line_edit.value(), 
-                'k_nh4_ph_7': widget.potassium_line_edit.value(), 
-                'exchangeable_sodium': widget.exchangeable_sodium_line_edit.value(), 
-                'cec7_clay_ratio': widget.clay_ratio_line_edit.value(), 
-                'cec_nh4_ph_7': widget.cec_nh4_ph_7_line_edit.value(), 
-                'ph_cacl2': widget.cacl_line_edit.value()
-            }
-            print(dict_row_info)
+        # Select relevant columns from the CSV file
+        self.csv = self.csv[csv_columns]
+        dict_rename_colums= {}
+        for i in range(len(csv_columns)):
+            dict_rename_colums[csv_columns[i]] = shapefile_columns[i]
+
+        # Rename the columns to match the shapefile columns inputed by the user
+        self.csv.rename(columns = dict_rename_colums, inplace=True)
+
+        for index, row in self.csv.iterrows():
+            dict_row_info = row.to_dict()
+            del dict_row_info[shapefile_columns[1]]
+            del dict_row_info[shapefile_columns[2]]
+
             row_dict = {
-                "geometry": {'type':'Point', 'coordinates': (widget.latitude_line_edit.value() , widget.longitude_line_edit.value())},
+                "geometry": {'type':'Point', 'coordinates': (row[shapefile_columns[1]], row[shapefile_columns[2]])},
                 "properties": dict_row_info
             }
             pointShp.write(row_dict)
         pointShp.close()
-        self.clear_page()
         QMessageBox.information(self, "Success", "Shapefile created successfully")
+        self.clear_page()
 
     def clear_page(self):
-        # Clear download destination field
+        # Clear CSV file path field
+        self.csv_path_line_edit.clear()
+        # Clear shapefile destination field
         self.shapefile_path_line_edit.clear()
         # Clear shapefile name field
         self.shapefile_name_line_edit.clear()
-        for i in range (2, self.line_num):
-            self.remove_line()
-        self.content_layout.itemAt(9).widget().date_edit.setDate(QDate(2000,1,1))
-        self.content_layout.itemAt(9).widget().latitude_line_edit.setValue(0)
-        self.content_layout.itemAt(9).widget().longitude_line_edit.setValue(0)
-        self.content_layout.itemAt(9).widget().samp_num_line_edit.clear()
-        self.content_layout.itemAt(9).widget().calcium_line_edit.setValue(0)
-        self.content_layout.itemAt(9).widget().magnesium_line_edit.setValue(0)
-        self.content_layout.itemAt(9).widget().sodium_line_edit.setValue(0)
-        self.content_layout.itemAt(9).widget().potassium_line_edit.setValue(0)
-        self.content_layout.itemAt(9).widget().exchangeable_sodium_line_edit.setValue(0)
-        self.content_layout.itemAt(9).widget().clay_ratio_line_edit.setValue(0)
-        self.content_layout.itemAt(9).widget().cec_nh4_ph_7_line_edit.setValue(0)
-        self.content_layout.itemAt(9).widget().cacl_line_edit.setValue(0)
-        self.line_num = 2
