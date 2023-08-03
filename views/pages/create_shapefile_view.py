@@ -1,9 +1,10 @@
 from qt_core import *
-from resources.widgets.push_button import PushButton
 import fiona
 import pandas as pd
 import sentinelhub as sh
 import os
+from resources.widgets.push_button import PushButton
+from resources.widgets.line_edit import LineEdit
 
 class CSVComboBox(QComboBox):
     old_index = new_index = None
@@ -41,7 +42,7 @@ class CreateShapefileView(QWidget):
         # CSV FILE
         #//////////////////////////////////////////////////////////////////////////
         csv_path_label = QLabel("CSV file:")
-        self.csv_path_line_edit = QLineEdit()
+        self.csv_path_line_edit = LineEdit()
         self.csv_path_line_edit.setReadOnly(True)
         csv_path_button = PushButton("Browse...")
         csv_path_button.setFixedWidth(100)
@@ -56,7 +57,7 @@ class CreateShapefileView(QWidget):
         shapefile_path_label = QLabel("Destination folder:")
 
         # Line edit for displaying and editing the selected folder
-        self.shapefile_path_line_edit = QLineEdit()
+        self.shapefile_path_line_edit = LineEdit()
         self.shapefile_path_line_edit.setReadOnly(True)
 
         # Button for choosing a folder
@@ -75,7 +76,7 @@ class CreateShapefileView(QWidget):
         shapefile_name_label = QLabel("Shapefile name:")
 
         # Line edit for displaying and editing the name of the shapefile
-        self.shapefile_name_line_edit = QLineEdit()
+        self.shapefile_name_line_edit = LineEdit()
 
         # Layout for shapefile_name_line_edit
         shapefile_name_layout = QHBoxLayout()
@@ -96,6 +97,13 @@ class CreateShapefileView(QWidget):
         self.remove_row_button.setHidden(True)
         remove_row_icon = QIcon("resources/icons/create_shapefile_icons/minus_icon.svg")
         self.remove_row_button.setIcon(remove_row_icon)
+
+        # ADD REMAINING ROWS BUTTON
+        #//////////////////////////////////////////////////////////////////////////
+
+        self.add_remaining_rows_button = PushButton('Add Remaining Rows')
+        add_remaining_rows_icon = QIcon("resources/icons/create_shapefile_icons/add_icon.svg")
+        self.add_remaining_rows_button.setIcon(add_remaining_rows_icon)
 
         # CREATE BUTTON
         #//////////////////////////////////////////////////////////////////////////
@@ -156,6 +164,7 @@ class CreateShapefileView(QWidget):
         create_button.clicked.connect(self.convert_to_shapefile)
         self.add_row_button.clicked.connect(self.add_row)
         self.remove_row_button.clicked.connect(self.remove_row)
+        self.add_remaining_rows_button.clicked.connect(self.add_remaining_rows)
         self.csv_path_line_edit.textChanged.connect(self.csv_columns_to_shapefile)
 
     #FUNCTIONS
@@ -178,10 +187,12 @@ class CreateShapefileView(QWidget):
             self.shapefile_path_line_edit.setText(folder_dialog)
 
     def csv_columns_to_shapefile(self):
+
         #delete the previous layout if there is one
-        if self.content_layout.count() > 11:
+        if self.content_layout.count() > 12:
             self.content_layout.removeItem(self.csv_to_shapefile_layout)
             self.content_layout.removeItem(self.buttons_layout)
+            self.content_layout.removeWidget(self.add_remaining_rows_button)
             while self.csv_to_shapefile_layout.count():
                 item = self.csv_to_shapefile_layout.takeAt(0)
                 widget = item.widget()
@@ -211,14 +222,17 @@ class CreateShapefileView(QWidget):
 
         self.content_layout.insertLayout(2, self.csv_to_shapefile_layout)
         self.content_layout.insertLayout(3, self.buttons_layout)
+        self.content_layout.insertWidget(4, self.add_remaining_rows_button)
+        
 
     def add_row(self):
         self.csv_combo_boxes.append(CSVComboBox(self.csv_columns, len(self.csv_combo_boxes)))
-        self.csv_to_shapefile_layout.addRow(QLineEdit(), self.csv_combo_boxes[-1])
+        self.csv_to_shapefile_layout.addRow(LineEdit(), self.csv_combo_boxes[-1])
         self.csv_combo_boxes[-1].disable_items_after_creation()
         self.remove_row_button.setVisible(True)
         if len(self.csv_columns) == len(self.csv_combo_boxes):
             self.add_row_button.setHidden(True)
+            self.add_remaining_rows_button.setHidden(True)
 
     def remove_row(self):
         row_num = self.csv_to_shapefile_layout.rowCount()
@@ -231,6 +245,14 @@ class CreateShapefileView(QWidget):
             self.remove_row_button.setHidden(True)
         if self.add_row_button.isHidden():
             self.add_row_button.setVisible(True)
+        self.add_remaining_rows_button.setVisible(True)
+
+    def add_remaining_rows(self):
+        for i in range(len(self.csv_columns) - 3):
+            if self.add_row_button.isHidden():
+                break
+            self.add_row()
+        self.add_remaining_rows_button.setHidden(True)
 
     def page_validation(self):
         csv_path = self.csv_path_line_edit.text()
