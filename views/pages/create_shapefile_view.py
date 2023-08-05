@@ -34,6 +34,12 @@ class CSVComboBox(QComboBox):
     def enable_item(self, index):
         if index != -1:
             self.model().item(index).setEnabled(True)
+    
+    def set_default_item(self):
+        for i in range(self.count()):
+            if self.model().item(i).isEnabled():
+                self.setCurrentIndex(i)
+                return self.currentText()
 
 class CreateShapefileView(QWidget):
     def __init__(self):
@@ -229,6 +235,8 @@ class CreateShapefileView(QWidget):
         self.csv_combo_boxes.append(CSVComboBox(self.csv_columns, len(self.csv_combo_boxes)))
         self.csv_to_shapefile_layout.addRow(LineEdit(), self.csv_combo_boxes[-1])
         self.csv_combo_boxes[-1].disable_items_after_creation()
+        selected_text = self.csv_combo_boxes[-1].set_default_item()
+        self.csv_to_shapefile_layout.itemAt(self.csv_to_shapefile_layout.rowCount() - 1, QFormLayout.LabelRole).widget().setText(selected_text)
         self.remove_row_button.setVisible(True)
         if len(self.csv_columns) == len(self.csv_combo_boxes):
             self.add_row_button.setHidden(True)
