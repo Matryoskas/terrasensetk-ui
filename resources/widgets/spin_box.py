@@ -1,22 +1,18 @@
 from qt_core import *
 
 class SpinBox(QSpinBox):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.setStyleSheet('''
-            QSpinBox {
-                background-color: #FFFFFF;
-                border: 1px solid #CCCCCC;
-                border-radius: 3px;
-                padding: 4px 8px;
-                color: #000000;
-                font-size: 12px;
-                font-weight: normal;
-            }
-            
-            QSpinBox:disabled {
-                background-color: #F0F0F0;
-                color: #999999;
-            }
-        ''')
-        self.setCursor(Qt.PointingHandCursor)
+    def __init__(self):
+        super().__init__()
+
+    def paintEvent(self, event):
+        super().paintEvent(event)
+        painter = QPainter(self)
+        painter.setPen(Qt.NoPen)
+        
+        if self.isEnabled():
+            line_color = QColor("#388E3C") 
+        else:
+            line_color = QColor("#999999")  
+        
+        painter.setBrush(line_color)
+        painter.drawRect(0, self.height() - 2, self.width(), 2)

@@ -1,12 +1,12 @@
 from qt_core import *
 import fiona
 import pandas as pd
-import sentinelhub as sh
 import os
 from resources.widgets.push_button import PushButton
 from resources.widgets.line_edit import LineEdit
+from resources.widgets.combo_box import ComboBox
 
-class CSVComboBox(QComboBox):
+class CSVComboBox(ComboBox):
     old_index = new_index = None
 
     def __init__(self, columns, id):
@@ -222,9 +222,9 @@ class CreateShapefileView(QWidget):
         self.csv_combo_boxes = [CSVComboBox(self.csv_columns, 0), CSVComboBox(self.csv_columns, 1), CSVComboBox(self.csv_columns, 2)]
 
         self.csv_to_shapefile_layout.addRow(QLabel("Shapefile Column:"), QLabel('CSV Column:'))
-        self.csv_to_shapefile_layout.addRow(QLabel('Date'), self.csv_combo_boxes[0])
-        self.csv_to_shapefile_layout.addRow(QLabel('Latitude'), self.csv_combo_boxes[1])
-        self.csv_to_shapefile_layout.addRow(QLabel('Longitude'), self.csv_combo_boxes[2])
+        self.csv_to_shapefile_layout.addRow(QLabel('date'), self.csv_combo_boxes[0])
+        self.csv_to_shapefile_layout.addRow(QLabel('latitude'), self.csv_combo_boxes[1])
+        self.csv_to_shapefile_layout.addRow(QLabel('longitude'), self.csv_combo_boxes[2])
 
         self.content_layout.insertLayout(2, self.csv_to_shapefile_layout)
         self.content_layout.insertLayout(3, self.buttons_layout)
@@ -290,11 +290,6 @@ class CreateShapefileView(QWidget):
     def convert_to_shapefile(self):
         if self.page_validation() == -1:
             return
-        
-        config = sh.SHConfig()
-        config.sh_client_id= r'9bd0a46d-3d5b-4dc0-98b5-546b3635f9f3'
-        config.sh_client_secret = r'~)x%O:RiSc|F5i+SIL}^fZUlWOa.;E^{_:&!J6@:'
-        config.save()
         
         shapefile_dir_path = self.shapefile_path_line_edit.text() + '/' + self.shapefile_name_line_edit.text()
         try:
@@ -364,7 +359,7 @@ class CreateShapefileView(QWidget):
             del dict_row_info[shapefile_columns[2]]
 
             row_dict = {
-                "geometry": {'type':'Point', 'coordinates': (row[shapefile_columns[1]], row[shapefile_columns[2]])},
+                "geometry": {'type':'Point', 'coordinates': (row[shapefile_columns[2]], row[shapefile_columns[1]])},
                 "properties": dict_row_info
             }
             pointShp.write(row_dict)
