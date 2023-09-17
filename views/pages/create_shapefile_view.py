@@ -9,11 +9,10 @@ from resources.widgets.combo_box import ComboBox
 class CSVComboBox(ComboBox):
     old_index = new_index = None
 
-    def __init__(self, columns, id):
+    def __init__(self, columns):
         super().__init__()
         self.setPlaceholderText("Select a column")
         self.addItems(columns)
-        self.id = id
         self.currentIndexChanged.connect(self.update_combo_boxes)
 
     def disable_items_after_creation(self):
@@ -219,7 +218,7 @@ class CreateShapefileView(QWidget):
 
         self.csv_to_shapefile_layout = QFormLayout()
 
-        self.csv_combo_boxes = [CSVComboBox(self.csv_columns, 0), CSVComboBox(self.csv_columns, 1), CSVComboBox(self.csv_columns, 2)]
+        self.csv_combo_boxes = [CSVComboBox(self.csv_columns), CSVComboBox(self.csv_columns), CSVComboBox(self.csv_columns)]
 
         self.csv_to_shapefile_layout.addRow(QLabel("Shapefile Column:"), QLabel('CSV Column:'))
         self.csv_to_shapefile_layout.addRow(QLabel('date'), self.csv_combo_boxes[0])
@@ -232,7 +231,7 @@ class CreateShapefileView(QWidget):
         
 
     def add_row(self):
-        self.csv_combo_boxes.append(CSVComboBox(self.csv_columns, len(self.csv_combo_boxes)))
+        self.csv_combo_boxes.append(CSVComboBox(self.csv_columns))
         self.csv_to_shapefile_layout.addRow(LineEdit(), self.csv_combo_boxes[-1])
         self.csv_combo_boxes[-1].disable_items_after_creation()
         selected_text = self.csv_combo_boxes[-1].set_default_item()
